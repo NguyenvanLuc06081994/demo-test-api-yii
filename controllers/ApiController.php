@@ -62,4 +62,44 @@ class ApiController extends SiteController
 
     }
 
+    public function actionCheckout()
+    {
+        $nl = new NganLuong();
+        $checksum = $_REQUEST['order_code'] . "|" . $nl->secure_pass;
+        //echo $checksum;
+        $params = array(
+            'merchant_id' => $_REQUEST['merchant_site_code'],
+            'checksum' => MD5($checksum),
+            'order_code' => $_REQUEST['order_code']
+        );
+
+        $api_url = "https://sandbox.nganluong.vn:8088/nl35/service/order/checkV2";
+        $post_field = '';
+        foreach ($params as $key => $value) {
+            if ($post_field != '') $post_field .= '&';
+            $post_field .= $key . "=" . $value;
+        }
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $api_url);
+        curl_setopt($ch, CURLOPT_ENCODING, 'UTF-8');
+        curl_setopt($ch, CURLOPT_VERBOSE, 1);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $post_field);
+        $result = curl_exec($ch);
+        $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $error = curl_error($ch);
+//        var_dump($result);
+//        die();
+        if ($result != '' && $status == 200) {
+            return $result;
+        }
+        return false;
+        ###################### END #####################
+    }
+
+
 }
